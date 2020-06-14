@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* globals chrome */
-chrome.storage.local.get({'thumbnailSize': 600}, function(prefs) {
+/* globals browser */
+browser.storage.local.get({'thumbnailSize': 600}, function(prefs) {
 	let canvas1 = document.createElement('canvas');
 	canvas1.width = prefs.thumbnailSize;
 	let context1 = canvas1.getContext('2d');
@@ -15,7 +15,8 @@ chrome.storage.local.get({'thumbnailSize': 600}, function(prefs) {
 	context1.drawWindow(window, 0, 0, document.documentElement.scrollWidth, document.documentElement.scrollWidth, '#fff');
 
 	canvas1.toBlob(function(blob) {
-		chrome.runtime.sendMessage({
+		//const url = location.host + "" + location.pathname + (location.search ? location.search : "") + (location.hash ? location.hash : "")
+		browser.runtime.sendMessage({
 			name: 'Thumbnails.save',
 			url: location.href,
 			image: blob

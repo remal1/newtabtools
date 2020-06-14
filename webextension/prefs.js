@@ -21,7 +21,7 @@ var Prefs = {
 	_versionLastAck: new Date(0),
 
 	init() {
-		chrome.storage.local.remove(['toolbarIcon']);
+		browser.storage.local.remove(['toolbarIcon']);
 
 		let names = [
 			'theme',
@@ -43,14 +43,14 @@ var Prefs = {
 			this.__defineSetter__(n, function(value) { // jshint ignore:line
 				let obj = {};
 				obj[n] = value;
-				chrome.storage.local.set(obj);
+				browser.storage.local.set(obj);
 			});
 		}
 
 		return new Promise(resolve => {
-			chrome.storage.local.get(prefs => {
+			browser.storage.local.get(prefs => {
 				this.parsePrefs(prefs);
-				chrome.storage.onChanged.addListener(this.prefsChanged.bind(this));
+				browser.storage.onChanged.addListener(this.prefsChanged.bind(this));
 				resolve();
 			});
 		});
@@ -137,7 +137,7 @@ var Prefs = {
 		return this._versionLastAck;
 	},
 	set versionLastAck(value) {
-		chrome.storage.local.set({ versionLastAck: value.toJSON() });
+		browser.storage.local.set({ versionLastAck: value.toJSON() });
 	},
 	get versionLastUpdate() {
 		return this._versionLastUpdate;
@@ -145,14 +145,14 @@ var Prefs = {
 	set versionLastUpdate(value) {
 		// Make sure this is up to date for synchronous code.
 		this._versionLastUpdate = value;
-		chrome.storage.local.set({ versionLastUpdate: value.toJSON() });
+		browser.storage.local.set({ versionLastUpdate: value.toJSON() });
 	}
 };
 
 var Blocked = {
 	_list: [],
 	_saveList() {
-		chrome.storage.local.set({ 'blocked': this._list });
+		browser.storage.local.set({ 'blocked': this._list });
 	},
 	block(url) {
 		this._list.push(url);
@@ -177,7 +177,7 @@ var Blocked = {
 var Filters = {
 	_list: Object.create(null),
 	_saveList() {
-		chrome.storage.local.set({ 'filters': this._list });
+		browser.storage.local.set({ 'filters': this._list });
 	},
 	getList() {
 		let copy = Object.create(null);

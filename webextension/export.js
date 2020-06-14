@@ -26,7 +26,7 @@ async function makeZip() {
 	}
 
 	let prefs = await new Promise(function(resolve) {
-		chrome.storage.local.get(resolve);
+		browser.storage.local.get(resolve);
 	});
 	for (let k of ['thumbnailSize', 'version', 'versionLastUpdate', 'versionLastAck']) {
 		delete prefs[k];
@@ -44,7 +44,7 @@ async function makeZip() {
 
 	return new Promise(function(resolve) {
 		writer.close(function(blob) {
-			chrome.downloads.download({
+			browser.downloads.download({
 				url: URL.createObjectURL(blob),
 				filename: 'newtabtools.zip',
 				saveAs: true
@@ -72,7 +72,7 @@ async function readZip(file) {
 		});
 	}
 
-	let views = chrome.extension.getViews().filter(v => v.location.pathname == '/newTab.xhtml');
+	let views = browser.extension.getViews().filter(v => v.location.pathname == '/newTab.xhtml');
 
 	let reader = await new Promise(function(resolve, reject) {
 		zip.createReader(new zip.BlobReader(file), resolve, reject);
@@ -92,7 +92,7 @@ async function readZip(file) {
 
 	let prefs = await getAsJSON('prefs.json');
 	if (prefs) {
-		await chrome.storage.local.set(prefs);
+		await browser.storage.local.set(prefs);
 	}
 
 	let tiles = await getAsJSON('tiles.json');

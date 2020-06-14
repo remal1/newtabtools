@@ -9,7 +9,7 @@ var Tiles = {
 	},
 	getAllTiles() { // TODO: This is a silly name.
 		return new Promise((resolve, reject) => {
-			chrome.runtime.sendMessage({ name: 'Tiles.getAllTiles' }, response => {
+			browser.runtime.sendMessage({ name: 'Tiles.getAllTiles' }, response => {
 				if (response === null) {
 					reject();
 					return;
@@ -22,7 +22,7 @@ var Tiles = {
 	},
 	getTile(url) {
 		return new Promise(resolve => {
-			chrome.runtime.sendMessage({ name: 'Tiles.getTile', url }, resolve);
+			browser.runtime.sendMessage({ name: 'Tiles.getTile', url }, resolve);
 		});
 	},
 	putTile(tile) {
@@ -30,7 +30,7 @@ var Tiles = {
 			this._list.push(tile.url);
 		}
 		return new Promise(resolve => {
-			chrome.runtime.sendMessage({ name: 'Tiles.putTile', tile }, function(id) {
+			browser.runtime.sendMessage({ name: 'Tiles.putTile', tile }, function(id) {
 				tile.id = id;
 				resolve(id);
 			});
@@ -43,7 +43,7 @@ var Tiles = {
 			index = this._list.indexOf(tile.url);
 		}
 		return new Promise(resolve => {
-			chrome.runtime.sendMessage({ name: 'Tiles.removeTile', tile }, resolve);
+			browser.runtime.sendMessage({ name: 'Tiles.removeTile', tile }, resolve);
 		});
 	}
 };
@@ -51,12 +51,12 @@ var Tiles = {
 var Background = {
 	getBackground() {
 		return new Promise(resolve => {
-			chrome.runtime.sendMessage({ name: 'Background.getBackground' }, resolve);
+			browser.runtime.sendMessage({ name: 'Background.getBackground' }, resolve);
 		});
 	},
 	setBackground(file) {
 		return new Promise(resolve => {
-			chrome.runtime.sendMessage({ name: 'Background.setBackground', file }, resolve);
+			browser.runtime.sendMessage({ name: 'Background.setBackground', file }, resolve);
 		});
 	},
 };

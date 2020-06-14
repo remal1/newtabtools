@@ -17,7 +17,7 @@ Promise.all([
 	}
 
 	let previousVersion = Prefs.version;
-	chrome.management.getSelf(function({version: currentVersion}) {
+	browser.management.getSelf(function({version: currentVersion}) {
 		if (previousVersion != currentVersion) {
 			Prefs.version = currentVersion;
 			if (previousVersion != -1 &&
@@ -39,7 +39,7 @@ Promise.all([
 });
 
 var db;
-const NEW_TAB_URL = chrome.runtime.getURL('newTab.xhtml');
+const NEW_TAB_URL = browser.runtime.getURL('newTab.xhtml');
 
 function initDB() {
 	return new Promise(function(resolve, reject) {
@@ -100,7 +100,13 @@ function getTZDateString(date = new Date()) {
 	return [date.getFullYear(), date.getMonth() + 1, date.getDate()].map(p => p.toString().padStart(2, '0')).join('-');
 }
 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+function urlNorm(url){
+	const ret = url.replace(/^(http|https):\/\//i, "").replace(/\/$/i, "");
+	//console.log(ret);
+	return ret;
+}
+
+browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	let today = getTZDateString();
 
 	switch (message.name) {
@@ -130,7 +136,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		return true;
 	case 'Tiles.pinTile':
 		Tiles.pinTile(message.title, message.url).then(function(id) {
-			for (let view of chrome.extension.getViews()) {
+			for (let view of browser.extension.getViews()) {
 				if (view.location.pathname == '/newTab.xhtml') {
 					view.Updater.updateGrid();
 				}
@@ -168,8 +174,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			let cursor = this.result;
 			if (cursor) {
 				let thumb = cursor.value;
-				if (message.urls.includes(thumb.url)) {
-					map.set(thumb.url, thumb.image);
+				const matchUrl = message.urls.findIndex(url => {
+					return urlNorm(url).indexOf(urlNorm(thumb.url)) > -1
+				})
+				if (matchUrl > -1) {
+					map.set(message.urls[matchUrl], thumb.image);
 					if (thumb.used != today) {
 						thumb.used = today;
 						cursor.update(thumb);
@@ -192,29 +201,29 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	return false;
 });
 
-chrome.webNavigation.onCompleted.addListener(function(details) {
+browser.webNavigation.onCompleted.addListener(function(details) {
 	if (details.frameId !== 0) {
 		return;
 	}
 
 	if (!['http:', 'https:', 'ftp:'].includes(new URL(details.url).protocol)) {
-		chrome.browserAction.disable(details.tabId);
+		browser.browserAction.disable(details.tabId);
 		return;
 	}
 
-	chrome.browserAction.enable(details.tabId);
+	browser.browserAction.enable(details.tabId);
 
 	// We might not have called getAllTiles yet.
 	Tiles.ensureReady().then(function({cache}) {
 		if (cache.includes(details.url)) {
-			chrome.tabs.get(details.tabId, function(tab) {
+			browser.tabs.get(details.tabId, function(tab) {
 				if (tab.incognito) {
 					return;
 				}
 				db.transaction('thumbnails').objectStore('thumbnails').get(details.url).onsuccess = function() {
 					let today = getTZDateString();
 					if (!this.result || this.result.stored < today) {
-						chrome.tabs.executeScript(details.tabId, {file: 'thumbnail.js'});
+						browser.tabs.executeScript(details.tabId, {file: 'thumbnail.js'});
 					}
 				};
 			});
@@ -222,14 +231,14 @@ chrome.webNavigation.onCompleted.addListener(function(details) {
 	}).catch(console.error);
 });
 
-chrome.tabs.query({}, function(tabs) {
+browser.tabs.query({}, function(tabs) {
 	for (let tab of tabs) {
 		if (tab.url == NEW_TAB_URL) {
-			chrome.tabs.reload(tab.id);
+			browser.tabs.reload(tab.id);
 		} else if (!['http:', 'https:', 'ftp:'].includes(new URL(tab.url).protocol)) {
-			chrome.browserAction.disable(tab.id);
+			browser.browserAction.disable(tab.id);
 		} else {
-			chrome.browserAction.enable(tab.id);
+			browser.browserAction.enable(tab.id);
 		}
 	}
 });
@@ -250,9 +259,9 @@ function cleanupThumbnails() {
 
 function idleListener(state) {
 	if (state == 'idle') {
-		chrome.idle.onStateChanged.removeListener(idleListener);
+		browser.idle.onStateChanged.removeListener(idleListener);
 		cleanupThumbnails();
 	}
 }
 
-chrome.idle.onStateChanged.addListener(idleListener);
+browser.idle.onStateChanged.addListener(idleListener);

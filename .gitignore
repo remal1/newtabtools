@@ -3,3 +3,6 @@
 *.zip
 webextension/_locales/values
 webextension/_locales/xyz
+webextension/web-ext-artifacts/
+webextension/.idea/
+webextension/.web-extension-id

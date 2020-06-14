@@ -16,8 +16,15 @@ var Tiles = {
 			return { cache: this._cache, list: this._list };
 		});
 	},
+	urlNorm(url){
+		const ret = url.replace(/^(http|https):\/\//i, "").replace(/\/$/i, "");
+		//console.log(ret);
+		return ret;
+	},
 	isPinned(url) {
-		return this._list.includes(url);
+		return this._list.find(urls => {
+			return this.urlNorm(urls).indexOf(this.urlNorm(url)) > -1
+		})
 	},
 	getAll() {
 		return new Promise(function(resolve, reject) {
@@ -61,7 +68,7 @@ var Tiles = {
 				} else {
 					options = { providers: ['places'] };
 				}
-				chrome.topSites.get(options, r => {
+				browser.topSites.get(options, r => {
 					let urls = this._list.slice();
 					let filters = Filters.getList();
 					let dotFilters = Object.keys(filters).filter(f => f[0] == '.');

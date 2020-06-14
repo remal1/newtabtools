@@ -498,7 +498,7 @@ var Grid = {
 			let message = newTabTools.getString('database_error_cookies', '$1').split('$1');
 			let item = document.createElementNS(HTML_NAMESPACE, 'li');
 			let code = document.createElementNS(HTML_NAMESPACE, 'code');
-			code.textContent = chrome.runtime.getURL('');
+			code.textContent = browser.runtime.getURL('');
 			item.appendChild(document.createTextNode(message[0]));
 			item.appendChild(code);
 			item.appendChild(document.createTextNode(message[1]));

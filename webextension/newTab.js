@@ -11,7 +11,7 @@ var HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
 
 var newTabTools = {
 	getString(name, ...substitutions) {
-		return chrome.i18n.getMessage(name, substitutions);
+		return browser.i18n.getMessage(name, substitutions);
 	},
 	isValidURL(url) {
 		try {
@@ -85,7 +85,7 @@ var newTabTools = {
 			urls.push(item.url);
 		};
 
-		chrome.tabs.query({}, tabs => {
+		browser.tabs.query({}, tabs => {
 			for (let t of tabs) {
 				maybeAddItem(t, 'tab');
 			}
@@ -101,7 +101,7 @@ var newTabTools = {
 				return;
 			}
 
-			chrome.bookmarks.getTree(tree => {
+			browser.bookmarks.getTree(tree => {
 				function traverse(children) {
 					for (let c of children) {
 						if (c.type == 'folder') {
@@ -119,7 +119,7 @@ var newTabTools = {
 					return;
 				}
 
-				chrome.history.search({
+				browser.history.search({
 					text: value,
 					startTime: 0
 				}, result => {
@@ -151,7 +151,7 @@ var newTabTools = {
 			newTabTools.hideOptions();
 			break;
 		case 'options-pinURL-permissions':
-			chrome.permissions.request({permissions: ['bookmarks', 'history']}, (succeeded) => {
+			browser.permissions.request({permissions: ['bookmarks', 'history']}, (succeeded) => {
 				if (succeeded) {
 					this.pinURLBlocked.hidden = true;
 					this.pinURLInput.focus();
@@ -169,7 +169,7 @@ var newTabTools = {
 			let url = this.pinURLInput.value;
 			Tiles.getTile(url).then(tile => {
 				return tile ? tile : new Promise(resolve => {
-					chrome.history.search({
+					browser.history.search({
 						text: url,
 						startTime: 0
 					}, function(result) {
@@ -276,7 +276,7 @@ var newTabTools = {
 		case 'options-savethumb':
 			let link = this.selectedSite.link;
 			let siteURL = link.url;
-			chrome.runtime.sendMessage({
+			browser.runtime.sendMessage({
 				name: 'Thumbnails.get',
 				urls: [siteURL]
 			}, thumbs => {
@@ -355,13 +355,13 @@ var newTabTools = {
 			this.showOptionsExtra('export');
 			return;
 		case 'options-backup':
-			chrome.permissions.request({permissions: ['downloads']}, function(succeeded) {
-				chrome.runtime.sendMessage({name: 'Export:backup'});
+			browser.permissions.request({permissions: ['downloads']}, function(succeeded) {
+				browser.runtime.sendMessage({name: 'Export:backup'});
 			});
 			return;
 		case 'options-restore':
 			let input = newTabTools.optionsPane.querySelector('#options-export input[type="file"]');
-			chrome.runtime.sendMessage({name: 'Import:restore', file: input.files[0]});
+			browser.runtime.sendMessage({name: 'Import:restore', file: input.files[0]});
 			return;
 		case 'options-donate':
 		case 'newtab-update-donate':
@@ -628,7 +628,7 @@ var newTabTools = {
 			return;
 		}
 
-		chrome.sessions.getRecentlyClosed(undoItems => {
+		browser.sessions.getRecentlyClosed(undoItems => {
 			let added = 0;
 
 			for (let element of this.recentList.querySelectorAll('a')) {
@@ -636,7 +636,7 @@ var newTabTools = {
 			}
 
 			function recent_onclick() {
-				chrome.sessions.restore(this.dataset.sessionId);
+				browser.sessions.restore(this.dataset.sessionId);
 				return false;
 			}
 
@@ -845,7 +845,7 @@ var newTabTools = {
 			} else {
 				options = { providers: ['places'] };
 			}
-			chrome.topSites.get(options, sites => {
+			browser.topSites.get(options, sites => {
 				for (let s of sites.reduce((carry, site) => {
 					let {protocol, host} = new URL(site.url);
 					if (host && ['http:', 'https:', 'ftp:'].includes(protocol) && !carry.includes(host)) {
@@ -861,7 +861,7 @@ var newTabTools = {
 		}
 	},
 	startup() {
-		if (!window.chrome) {
+		if (!window.browser) {
 			// The page couldn't be loaded properly because WebExtensions is too slow. Sad.
 			return;
 		}
@@ -885,15 +885,15 @@ var newTabTools = {
 			newTabTools.updateUI();
 			newTabTools.refreshBackgroundImage();
 
-			chrome.sessions.onChanged.addListener(function() {
+			browser.sessions.onChanged.addListener(function() {
 				newTabTools.refreshRecent();
 			});
 
 			// Forget about visiting this page. It shouldn't be in the history.
 			// Maybe if bug 1322304 is ever fixed we could remove this.
-			chrome.permissions.contains({permissions: ['history']}, contains => {
+			browser.permissions.contains({permissions: ['history']}, contains => {
 				if (contains) {
-					chrome.history.deleteUrl({ url: location.href });
+					browser.history.deleteUrl({ url: location.href });
 					this.pinURLBlocked.hidden = true;
 				}
 			});
@@ -908,7 +908,7 @@ var newTabTools = {
 		}).catch(console.error);
 	},
 	getThumbnails() {
-		chrome.runtime.sendMessage({
+		browser.runtime.sendMessage({
 			name: 'Thumbnails.get',
 			urls: Grid.sites.filter(s => s && !s.thumbnail.style.backgroundImage).map(s => s.link.url)
 		}, function(thumbs) {
